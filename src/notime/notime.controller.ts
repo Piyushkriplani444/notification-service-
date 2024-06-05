@@ -51,7 +51,7 @@ export class NotimeController {
         attachments: [
           {
             filename: 'test.jpg',
-            content: resizedBase64,
+            path: `data:image/png;base64, ${resizedBase64}`,
             cid: 'image123',
           },
         ],
