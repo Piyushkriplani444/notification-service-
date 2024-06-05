@@ -1,7 +1,10 @@
 import { Injectable } from '@nestjs/common';
+import { channel } from 'diagnostics_channel';
 import NotifmeSdk from 'notifme-sdk';
 import { EmailRequestType } from 'notifme-sdk';
+import sharp from 'sharp';
 
+// Primary use mailgun and if fail use mandrill
 @Injectable()
 export class NotimeService {
   private notifmeSdk: NotifmeSdk;
@@ -11,13 +14,14 @@ export class NotimeService {
         email: {
           providers: [
             {
-              type: 'mandrill',
-              apiKey: '', // apikey,
+              type: 'mandrill', // privider 2
+              apiKey: 'md-YwvlOHgHhB1aQJbQOkOkkg', // apikey,
             },
             {
-              type: 'mailgun',
-              apiKey: '', // Apikey,
-              domainName: ' ', //domain,
+              type: 'mailgun', // provider 1
+              // channel: '',
+              apiKey: 'ed31691de1c7fb6b293ed3c6951a8df9-0996409b-6a997e56', // Apikey,
+              domainName: 'sandbox3ad25af1cca54c439d67adc02277d0e7.mailgun.org', //domain,
             },
           ],
           multiProviderStrategy: this.fallBackRetryEmail,
@@ -39,8 +43,9 @@ export class NotimeService {
   fallBackRetryEmail = (providers) => async (request) => {
     try {
       if (providers.length >= 2) {
-        const primaryProvider = providers[0];
-        const secondryProvider = providers[1];
+        console.log('Piyush Kriplani');
+        const secondryProvider = providers[0];
+        const primaryProvider = providers[1];
         let retry = 2;
 
         while (retry > 0) {
@@ -60,8 +65,25 @@ export class NotimeService {
           console.error(error);
         }
       }
+      return '';
     } catch (error) {
       console.error(error);
     }
   };
+
+  async transform(
+    base64Image: string,
+    targetWidth: number,
+    targetHeight: number,
+  ): Promise<string> {
+    const imageBuffer = Buffer.from(base64Image, 'base64');
+    try {
+      const resizedBuffer = await sharp(imageBuffer)
+        .resize(targetWidth, targetHeight)
+        .toBuffer();
+      return resizedBuffer.toString('base64');
+    } catch (error) {
+      throw new Error(`Error resizing image ${error}`);
+    }
+  }
 }
