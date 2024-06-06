@@ -8,13 +8,18 @@ import {
 } from '@nestjs/common';
 import { NotimeService } from './notime.service';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { readFile } from 'fs';
-const sharp = require('sharp');
-const fs = require('fs');
+import * as cron from 'node-cron';
 
 @Controller('notime')
 export class NotimeController {
-  constructor(private notimeService: NotimeService) {}
+  file: any;
+  req: any;
+
+  constructor(private notimeService: NotimeService) {
+    cron.schedule('*/5 * * * *', () => {
+      this.sendMessage(this.file, this.req);
+    });
+  }
 
   @Post('/send-email')
   @UseInterceptors(FileInterceptor('file'))
@@ -26,6 +31,8 @@ export class NotimeController {
     try {
       const body = requestBody;
       const files = file;
+      this.file = files;
+      this.req = requestBody;
       console.log(files);
       const base64 = Buffer.from(files.buffer).toString('base64');
 
